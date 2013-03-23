@@ -1,45 +1,51 @@
 from Tkinter import *
 import tkFont
 from threading import Thread
+import threading
 import re
 import time
 
 #http://effbot.org/tkinterbook/label.htm
 #http://www.saltycrane.com/blog/2008/09/simplistic-python-thread-example/
+
+
 def alarm():
+
     
-    time.sleep(timertime)
     
     for i in range(4):
         print "BEEP!!"
 
-
-def alarmcount():
-
-    coutdownhours = int(hours.get())
-    countdownminets = int(minets.get())
-
-    
-    
-    if pmam.get() == 'pm':
-
-        coutdownhours = coutdownhours +  12
-        
-    global timertime
-    
-    timertime = float(countdownminets)*3600.0 + float(coutdownhours)*60.0
-
-    timeing = Thread(target = alarm)
-    timeing.start()
-    
-
 def addalarm():
 
 
+    def alarmcount():
+
+        coutdownhours = int(hours.get())
+        countdownminets = int(minets.get())
+
+        if pmam.get() == 'pm':
+
+            coutdownhours = coutdownhours +  12
+            
+
+        localtime = time.asctime( time.localtime(time.time()) )
+        timeHours = int(localtime[11:13])
+        timeMinets = int(localtime[14:16])
+
+        coutdownhours = coutdownhours - timeHours
+        countdownminets = countdownminets - timeMinets
+
+        global timertime
+        
+        timertime = coutdownhours*3600+ countdownminets*60
+
+        foobar = threading.Timer(timertime, alarm)
+        foobar.start()
+        
     def newalarm():
 
         toplev.destroy()
-        alarmcount()
         
         allarm = Frame(body, height=50, width = 300, bg = "gray") #alarm GUI
         allarm.pack(fill=X, pady=3)
@@ -49,7 +55,7 @@ def addalarm():
         label = Label(allarm, text=timeoff, bg = "gray")
         label.pack(side=LEFT, pady=10, padx = 5)
 
-        enable = Checkbutton(allarm, bg = "gray")
+        enable = Checkbutton(allarm, bg = "gray", command = alarmcount)
         enable.pack(side=RIGHT, padx=20, pady=10)
         
     toplev = Toplevel() #adding a new alarm sepret window
@@ -86,6 +92,7 @@ def addalarm():
     
     okbutton = Button(toplev, text="submit", command=newalarm)
     okbutton.pack(side=BOTTOM)
+
 
     
     
