@@ -11,11 +11,10 @@ import time
 
 def alarm():
 
-    
-    
     for i in range(4):
-        print "BEEP!!"
+        print "BEEP!!!!!!!!"
 
+#creates of an alarm
 def addalarm():
 
 
@@ -57,13 +56,16 @@ def addalarm():
 
         enable = Checkbutton(allarm, bg = "gray", command = alarmcount)
         enable.pack(side=RIGHT, padx=20, pady=10)
-        
+
+    
+                
     toplev = Toplevel() #adding a new alarm sepret window
     toplev.title("new alarm")
-    toplev.geometry("230x150")
+    toplev.geometry("260x150")
+    root.resizable(FALSE,FALSE)
 
     dropdown = Frame(toplev, width=115)
-    dropdown.pack()
+    dropdown.pack(pady=10)
 
     global hours
     hours = StringVar()
@@ -82,19 +84,51 @@ def addalarm():
                             '29','30','31','32','33','34','35','36','37','38',
                             '39','40','41','42','43','44','45','46','47','48',
                             '49','50','51','52','53','54','55','56','57','58',
-                            '59')
+                            '59', '00')
     minetstime.pack(side=LEFT)
 
     global pmam
     pmam = StringVar()
-    ampm = OptionMenu(dropdown, pmam, 'am', 'pm',)
+    ampm = OptionMenu(dropdown,pmam, 'am', 'pm',)
     ampm.pack(side=LEFT)
     
     okbutton = Button(toplev, text="submit", command=newalarm)
     okbutton.pack(side=BOTTOM)
 
+def addtimer():
 
+    def newtimer():
+
+        settimer.distory()
+        
+
+    settimer = Toplevel()
+    settimer.title("new timer")
+    settimer.geometry("260x150")
+    root.resizable(FALSE,FALSE)
+
+    dropdown = Frame(settimer)
+    dropdown.pack(pady=10)
+
+    mintill = StringVar()
+    mintime = OptionMenu(dropdown, mintill, '01','02','03','04','05','06','07','08',
+                            '09','10','11','12','13','14','15','16','17','18',
+                            '19','20','21','22','23','24','25','26','27','28',
+                            '29','30','31','32','33','34','35','36','37','38',
+                            '39','40','41','42','43','44','45','46','47','48',
+                            '49','50','51','52','53','54','55','56','57','58',
+                            '59','00')
+    mintime.pack(side=LEFT)
     
+    sectill = StringVar()
+    sectime = OptionMenu(dropdown, sectill, '01','02','03','04','05','06','07','08',
+                            '09','10','11','12','13','14','15','16','17','18',
+                            '19','20','21','22','23','24','25','26','27','28',
+                            '29','30','31','32','33','34','35','36','37','38',
+                            '39','40','41','42','43','44','45','46','47','48',
+                            '49','50','51','52','53','54','55','56','57','58',
+                            '59','00')
+    sectime.pack(side=LEFT)
     
 def gettime():
     
@@ -128,14 +162,12 @@ def refreshnow():
         fulltimenow = gettime()
         newtime.set(fulltimenow)
         time.sleep(2)
-
-    
-
     
 
 root = Tk()
 root.title("Clock")
 root.geometry("300x400")
+root.resizable(FALSE,FALSE)
 
 newtime = StringVar()
 
@@ -149,13 +181,15 @@ timenow = Label(top,  textvariable = newtime, font=("verdana",20))
 timenow.pack()
 
 body = Frame(root)
-body.pack(fill = X)
+body.pack(fill=X)
 
 bot = Frame(root)
 bot.pack(side=BOTTOM, fill=X)
 
-add = Button(bot, text="+", width=1, command=addalarm)
+add = Button(bot, text="alarm", width=4, command=addalarm)
 add.pack(side=LEFT, padx=4)
 
+addtimmer = Button(bot, text="timer", width=4, command=addtimer)
+addtimmer.pack(side=LEFT, padx=4)
 root.mainloop()
 
