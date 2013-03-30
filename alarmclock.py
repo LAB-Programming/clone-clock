@@ -8,15 +8,13 @@ import time
 #http://effbot.org/tkinterbook/label.htm
 #http://www.saltycrane.com/blog/2008/09/simplistic-python-thread-example/
 
-
 def alarm():
 
     for i in range(4):
         print "BEEP!!!!!!!!"
 
 #creates of an alarm
-def addalarm():
-
+def addalarm(): 
 
     def alarmcount():
 
@@ -54,7 +52,7 @@ def addalarm():
         label = Label(allarm, text=timeoff, bg = "gray")
         label.pack(side=LEFT, pady=10, padx = 5)
 
-        enable = Checkbutton(allarm, bg = "gray", command = alarmcount)
+        enable = Checkbutton(allarm, bgcolor = "gray", command = alarmcount)
         enable.pack(side=RIGHT, padx=20, pady=10)
 
     
@@ -95,30 +93,61 @@ def addalarm():
     okbutton = Button(toplev, text="submit", command=newalarm)
     okbutton.pack(side=BOTTOM)
 
+#creates a timer
+
 def addtimer():
+
+    def timercount():
+
+        minets = int(mintill.get())
+        secents = int(sectill.get())
+
+        minets = minets*60
+    
+        timerstime = minets + secents
+        
+        thread2 = threading.Timer(timerstime, alarm)
+        thread2.start()
 
     def newtimer():
 
-        settimer.distory()
+        settimer.destroy()
+
+        timer = Frame(body, height=50, width = 300, bg = "gray") #timer GUI frame
+        timer.pack(fill=X, pady=3)
+
+        coutdown = StringVar()
+        coutdown.set( mintill.get() + ":" + sectill.get() )
+        
+        coutdownlabel = Label(timer, textvariable=coutdown, bg="gray")
+        coutdownlabel.pack(side = LEFT, padx=20, pady=10)
+
+        buttonstart = Button(timer, bg="gray", text="start", command=timercount)
+        buttonstart.pack(side=RIGHT, padx=5)
+        
         
 
     settimer = Toplevel()
     settimer.title("new timer")
     settimer.geometry("260x150")
-    root.resizable(FALSE,FALSE)
+    settimer.resizable(FALSE,FALSE)
 
     dropdown = Frame(settimer)
     dropdown.pack(pady=10)
 
+    global mintill
+    
     mintill = StringVar()
-    mintime = OptionMenu(dropdown, mintill, '01','02','03','04','05','06','07','08',
-                            '09','10','11','12','13','14','15','16','17','18',
+    mintime = OptionMenu(dropdown, mintill, '1','2','3','4','5','6','7','8',
+                            '9','10','11','12','13','14','15','16','17','18',
                             '19','20','21','22','23','24','25','26','27','28',
                             '29','30','31','32','33','34','35','36','37','38',
                             '39','40','41','42','43','44','45','46','47','48',
                             '49','50','51','52','53','54','55','56','57','58',
-                            '59','00')
+                            '59','0')
     mintime.pack(side=LEFT)
+
+    global sectill
     
     sectill = StringVar()
     sectime = OptionMenu(dropdown, sectill, '01','02','03','04','05','06','07','08',
@@ -129,6 +158,9 @@ def addtimer():
                             '49','50','51','52','53','54','55','56','57','58',
                             '59','00')
     sectime.pack(side=LEFT)
+
+    submitbutton = Button(settimer, text="submit", command=newtimer)
+    submitbutton.pack(side=BOTTOM)
     
 def gettime():
     
