@@ -1,4 +1,5 @@
 from Tkinter import *
+import sys
 import tkFont
 from threading import Thread
 import threading
@@ -8,12 +9,13 @@ import time
 #http://effbot.org/tkinterbook/label.htm
 #http://www.saltycrane.com/blog/2008/09/simplistic-python-thread-example/
 
+####################alarm clock###############
+
 def alarm():
 
     for i in range(4):
         print "BEEP!!!!!!!!"
 
-#creates of an alarm
 def addalarm(): 
 
     def alarmcount():
@@ -52,7 +54,7 @@ def addalarm():
         label = Label(allarm, text=timeoff, bg = "gray")
         label.pack(side=LEFT, pady=10, padx = 5)
 
-        enable = Checkbutton(allarm, bgcolor = "gray", command = alarmcount)
+        enable = Checkbutton(allarm, bg = "gray", command = alarmcount)
         enable.pack(side=RIGHT, padx=20, pady=10)
 
     
@@ -93,20 +95,157 @@ def addalarm():
     okbutton = Button(toplev, text="submit", command=newalarm)
     okbutton.pack(side=BOTTOM)
 
-#creates a timer
+    
+####################stop#########################
+    
+def stopupdate():
+
+    def timenow():
+
+        fulltime = time.asctime() 
+            
+        hournow = int(fulltime[11:13])
+        minnow = int(fulltime[14:16])
+        secnow = int(fulltime[17:19])
+
+        timeinsec = hournow*3600 + minnow*60 + secnow
+
+        #print "timenow:", timeinsec
+        return timeinsec
+    
+    def timeinsec():
+        
+        sec = timenow() - 1
+        return sec
+
+    seclabel = int(seclap.get())
+    minlabel = int(minlap.get())
+    
+    while True:
+
+        if timenow() == timeinsec():
+
+            seclabel = seclabel + 1
+
+            if seclabel > 59:
+
+                minlabel = minlable + 1
+                seclabel = 0
+                
+            lap.set(str(minlabel) + ":" + str(seclabel))
+            
+
+            
+        
+    
+def addstop():
+
+    def stopstart():
+
+        thread3 = Thread(target = stopupdate)
+        thread3.start()
+        
+    def stopstop():
+
+        thread3.stop()
+        
+    stop = Frame(body, height=50, width = 300, bg = "gray") #timer GUI frame
+    stop.pack(fill=X, pady=3)
+
+    global minlap
+    global seclap
+    
+    minlap = StringVar()
+    minlap.set("0")
+    
+    seclap = StringVar()
+    seclap.set("00")
+
+    global lap
+    
+    lap = StringVar()
+    lap.set( minlap.get() + ":" + seclap.get() )
+    
+    stoplabel = Label(stop, textvariable=lap, bg="gray")
+    stoplabel.pack(side = LEFT, padx=20, pady=10)
+
+    buttonstop = Button(stop, bg="gray", text="stop")
+    buttonstop.pack(side=RIGHT, padx=5)
+
+    buttonstart = Button(stop, bg="gray", text="start", command=stopstart)
+    buttonstart.pack(side=RIGHT, padx=5)
+
+
+######################timer######################
+        
+def timerupdate():# thread-2
+
+    def timenow():
+
+        fulltime = time.asctime() 
+            
+        hournow = int(fulltime[11:13])
+        minnow = int(fulltime[14:16])
+        secnow = int(fulltime[17:19])
+
+        timeinsec = hournow*3600 + minnow*60 + secnow
+
+        #print "timenow:", timeinsec
+        return timeinsec
+    
+    def timethen():
+
+        timetill = (int(mintill.get()) * 60) + int(sectill.get())
+        timethen = starttime + timetill
+
+        #print "timethen: ", timethen
+        return timethen
+        
+
+    def timeinsec():
+
+        timeinasec = whatsthetime + 1
+        #print timeinasec
+        return timeinasec
+    
+    global starttime
+    global whatsthetime
+    
+    sectimetill = int(sectill.get())
+    mintimetill = int(mintill.get())
+    starttime = timenow()
+    whatsthetime = timenow()
+
+    endtime = timethen()
+
+    while True:
+        
+        if  timenow() == endtime:
+
+            print "beep"
+            coutdown.set( mintill.get() + ":" + sectill.get() )
+            sys.exit()
+        
+        if timenow() == timeinsec():
+
+            sectimetill = sectimetill - 1
+
+            if sectimetill < 0:
+
+                mintimetill = mintimetill - 1
+                sectimetill = sectimetill + 59
+                
+            coutdown.set( str(mintimetill) + ":" + str(sectimetill) )
+            
+            whatsthetime = timenow()
+
+#creation of timer
 
 def addtimer():
 
     def timercount():
-
-        minets = int(mintill.get())
-        secents = int(sectill.get())
-
-        minets = minets*60
-    
-        timerstime = minets + secents
         
-        thread2 = threading.Timer(timerstime, alarm)
+        thread2 = Thread(target = timerupdate)
         thread2.start()
 
     def newtimer():
@@ -116,6 +255,8 @@ def addtimer():
         timer = Frame(body, height=50, width = 300, bg = "gray") #timer GUI frame
         timer.pack(fill=X, pady=3)
 
+        global coutdown
+        
         coutdown = StringVar()
         coutdown.set( mintill.get() + ":" + sectill.get() )
         
@@ -182,10 +323,13 @@ def gettime():
 
         
     global fulltime
-    fulltime = (str(timeHours) + ":" + str(timeminets) + " " + pmam)
+    fulltime = (str(timeHours) + ":" + ("0" if timeminets < 10 else "") + str(timeminets) + " " + pmam)
     return fulltime
+    
 
-def refreshnow():
+##################clock###################
+
+def refreshnow(): #thread-1
 
     global fulltimenow
     
@@ -195,6 +339,8 @@ def refreshnow():
         newtime.set(fulltimenow)
         time.sleep(2)
     
+
+##################main GUI##################
 
 root = Tk()
 root.title("Clock")
@@ -216,12 +362,16 @@ body = Frame(root)
 body.pack(fill=X)
 
 bot = Frame(root)
-bot.pack(side=BOTTOM, fill=X)
+bot.pack(side=BOTTOM)
 
 add = Button(bot, text="alarm", width=4, command=addalarm)
 add.pack(side=LEFT, padx=4)
 
 addtimmer = Button(bot, text="timer", width=4, command=addtimer)
 addtimmer.pack(side=LEFT, padx=4)
+
+addstop = Button(bot, text="stop", width=4, command=addstop)
+addstop.pack(side=LEFT, padx=4)
+
 root.mainloop()
 
