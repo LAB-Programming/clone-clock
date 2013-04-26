@@ -1,5 +1,6 @@
 from Tkinter import *
 from threading import Thread
+import tkMessageBox
 import threading
 import sys
 import tkFont
@@ -59,7 +60,7 @@ class alarmclock: #containes what you need for the alarms
 
         def count(): #does all the math for for the time 
 
-                self.start.configure(state=DISABLED, background='cadetblue')
+                self.start.configure(state=DISABLED)
                 
                 self.thenhours = int(self.hours.get())
                 self.thenminets = int(self.minets.get())
@@ -109,10 +110,9 @@ class alarmclock: #containes what you need for the alarms
         
     
     def alarm(self): # when the alarm gose this function runs (untill sound libraary is found)
-        
-        for self.i in range(4):
 
-            print "beep!!"
+        self.start.configure(state="active")
+        tkMessageBox.showinfo("Times Up!")
 
         
     def start(self): # creates the childed window
