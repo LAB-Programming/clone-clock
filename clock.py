@@ -58,6 +58,11 @@ class alarmclock: #containes what you need for the alarms
 
     def createGUI(self): #creates the GUI on the alarm on root
 
+        def alarm(): # when the alarm gose this function runs (untill sound libraary is found)
+
+                self.start.configure(state="active")
+                tkMessageBox.showinfo("Times Up!")
+                
         def count(): #does all the math for for the time 
 
                 self.start.configure(state=DISABLED)
@@ -74,7 +79,7 @@ class alarmclock: #containes what you need for the alarms
                 self.thenminets = self.thenminets * 60
                 self.timetill = (self.thenminets + self.thenhours) - timenow.number()
 
-                self.timerthread = threading.Timer(self.timetill, alarm.alarm)
+                self.timerthread = threading.Timer(self.timetill, alarm)
                 self.timerthread.start()
 
                 ########
@@ -105,14 +110,6 @@ class alarmclock: #containes what you need for the alarms
         
         self.start = Button(self.alarmclock, text = "start", command=count)
         self.start.pack(side=RIGHT, padx = 4)
-
-
-        
-    
-    def alarm(self): # when the alarm gose this function runs (untill sound libraary is found)
-
-        self.start.configure(state="active")
-        tkMessageBox.showinfo("Times Up!")
 
         
     def start(self): # creates the childed window
