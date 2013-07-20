@@ -1,189 +1,414 @@
-from Tkinter import *
-from threading import Thread
-import tkMessageBox
-import threading
-import sys
-import tkFont
-import time
+from Tkinter import * #GUI library
+import tkFont #makes every thing look nice suplys diffrent fonts and such
+import sqlite3 #i use this to hold all of the data for the events
+import datetime #what do you think
+import unidecode #GRRRRRRRRRR
+import tkMessageBox # so i can pop error messages up and such
 
-def clockupdate(): #update the time and sets a varuable
+#Giovanni Rescigno : LAB-progaming/clone computers
+#date started: 6/20/13
+#License: GPL 2.0 (complty open!!!!! have fun)
 
-        while True:
-            
-            time.sleep(1)
-            clock.set(timenow.string())
 
-        
-class timenow: #diffnet ways of getting the time
-    
-    def number(self): #returns the timein sec
 
-        self.fulltime = time.asctime() 
-                
-        self.hournow = int(self.fulltime[11:13])
-        self.minnow = int(self.fulltime[14:16])
+class mainGui: #the class containg the Gui and handlers
 
-        self.timeinsec = self.hournow*3600 + self.minnow*60
+        def __init__(self, master):
 
-        return self.timeinsec
+		self.app = Frame(master)
+		self.app.pack(side = TOP, fill=X)
 
-    def string(self):# if you what the time as a string
+		self.ListFrame = Frame(self.app, width=200)
+		self.ListFrame.pack(side = LEFT, fill=Y)
 
-        self.timefull = time.asctime()
-        self.hour = int(self.timefull[11:13])
-        self.min = int(self.timefull[14:16])
+		self.infoFrame = Frame(self.app, width = 350)
+		self.infoFrame.pack(side = LEFT, fill=Y)
 
-        if self.hour >= 13:
+		self.listofdata(self.ListFrame) #fuction that handles the data
+		self.viewerEvent(self.infoFrame) #fuction that handles the data being displayed
 
-            self.hour = self.hour - 12
-            self.ampm = "pm"
+		for self.dataoflist in SQLdata.getDataFromSQLITE():
 
-            if self.hour == 12:
+			self.data.insert(END, " " + self.dataoflist[1])
 
-                self.ampm = "am"
 
-        elif self.hour <= 12:
+	def listofdata(self, master):
 
-            self.hour = self.hour
-            self.ampm = "am"
+		self.listboxholder = Frame(master)
+		self.listboxholder.grid(row = 0, column = 0, padx=5)
 
-            if self.hour == 12:
+		self.data = Listbox(self.listboxholder, height = 25, width = 25)
+		self.data.pack(side = LEFT, fill = Y)
 
-                self.ampm = "pm"
+		self.scroller = Scrollbar(self.listboxholder)
+		self.scroller.pack(side = LEFT, fill = Y)		
 
-        return str(self.hour) + ":" + ("0" if self.min < 10 else "") + str(self.min) + " " + self.ampm
-        
-            
-class alarmclock: #containes what you need for the alarms
+		self.data.configure(yscrollcommand = self.scroller.set)
+		self.scroller.configure(command = self.data.yview)
 
-    def createGUI(self): #creates the GUI on the alarm on root
+		self.data.bind('<<ListboxSelect>>', self.listhandler)
 
-        def alarm(): # when the alarm gose this function runs (untill sound libraary is found)
+		self.buttonBox = Frame(master)
+		self.buttonBox.grid(row = 1, column = 0, sticky = W)
 
-                self.start.configure(state="active")
-                tkMessageBox.showinfo("Times Up!")
-                
-        def count(): #does all the math for for the time 
+		self.addNewEvent = Button(self.buttonBox, text = "+", command = self.AddButtonPress)
+		self.addNewEvent.pack(side=LEFT, padx = 2)
 
-                self.start.configure(state=DISABLED)
-                
-                self.thenhours = int(self.hours.get())
-                self.thenminets = int(self.minets.get())
-                self.thenampm = self.pmam.get()
+		self.distroyEvent = Button(self.buttonBox, text = "-", command=self.distoryButtonPress)
+		self.distroyEvent.pack(side=LEFT)
 
-                if self.thenampm == "pm" and self.thenhours != 12:
+	def viewerEvent(self, master):
 
-                    self.thenhours = self.thenhours + 12
+		self.titleFont = tkFont.Font(family="Helvetica", weight="bold", size=20)# declaration of fonts up here
+		self.subtitle = tkFont.Font(family="Helvetica", weight="bold", size=14)
+		self.bodyFont = tkFont.Font(family="Helvetica", weight="normal", size=14)
 
-                self.thenhours = self.thenhours * 3600
-                self.thenminets = self.thenminets * 60
-                self.timetill = (self.thenminets + self.thenhours) - timenow.number()
+		self.topFrame = Frame(master)
+		self.topFrame.pack(side = TOP, fill = X, padx = 5, pady = 5)
 
-                self.timerthread = threading.Timer(self.timetill, alarm)
-                self.timerthread.start()
 
-                ########
-        
+		self.EventName = StringVar()# var holding the Name of the event 
+		self.titleLabel = Label(self.topFrame, font=self.titleFont, textvariable=self.EventName)
+		self.titleLabel.pack(side = LEFT)
 
-        self.config.destroy()
-        
-        self.alarmclock = Frame(body, bg="gray")
-        self.alarmclock.pack(fill=X, pady = 5)
+		self.CheckVar1 = IntVar()#holds the state of the check box
+		self.finnished = Checkbutton(self.topFrame, text = "Done", variable = self.CheckVar1, 
+			onvalue = 1, offvalue = 0)
+		self.finnished.pack(side = RIGHT)
 
-        self.timeframe = Frame(self.alarmclock, bg="gray")
-        self.timeframe.pack(side = LEFT, padx = 3)
+		self.hr = Frame(master, bg = "black", height = 2, width = 350)
+		self.hr.pack(fill = X, padx = 3) 
 
-        self.hourslabel = Label(self.timeframe, textvariable = self.hours,
-                                bg = "gray", height=3)
-        self.hourslabel.pack(side=LEFT)
 
-        self.spliterlabel = Label(self.timeframe, text = ":", bg = "gray")
-        self.spliterlabel.pack(side = LEFT)
-        
-        self.minetslabel = Label(self.timeframe, textvariable = self.minets,
-                                 bg = "gray")
-        self.minetslabel.pack(side = LEFT)
+		self.dateframe = Frame(master)
+		self.dateframe.pack(fill=X, padx = 5, pady = 10)
 
-        self.ampmlabel = Label(self.timeframe, textvariable = self.pmam,
-                               bg = "gray")
-        self.ampmlabel.pack(side = LEFT, padx = 2)
-        
-        self.start = Button(self.alarmclock, text = "start", command=count)
-        self.start.pack(side=RIGHT, padx = 4)
+		self.dateLabel = Label(self.dateframe, text = "Date: ", font = self.subtitle)
+		self.dateLabel.pack(side = LEFT)
 
-        
-    def start(self): # creates the childed window
+		self.dateOfEvent = StringVar()#var holding the date
+		self.datedata = Label(self.dateframe, textvariable = self.dateOfEvent, font = self.bodyFont)
+		self.datedata.pack(side = LEFT, padx = 10)
 
-        self.config = Toplevel()
-        self.config.title("add alarm")
-        self.config.geometry("260x150")
-        self.config.resizable(FALSE,FALSE)
 
-        self.dropdown = Frame(self.config)
-        self.dropdown.pack(fill=Y, pady=10)
+		self.timedata = Frame(master)
+		self.timedata.pack(fill = X, padx = 5, pady = 10)
 
-        self.hours = StringVar()
-        self.hourstime = OptionMenu(self.dropdown, self.hours, '1', '2', '3','4','5','6','7','8',
-                           '9','10','11','12')
-        self.hourstime.pack(side=LEFT)
+		self.timeLabel = Label(self.timedata, text = "Time: ", font = self.subtitle)
+		self.timeLabel.pack(side = LEFT)
 
-        self.spliter = Label(self.dropdown, text=" : ")
-        self.spliter.pack(side=LEFT)
+		self.startTimeData = StringVar() #var holding the time an event starts
+		self.startTime = Label(self.timedata, textvariable = self.startTimeData, font = self.bodyFont)
+		self.startTime.pack(side = LEFT, padx = 10)
 
-        self.minets = StringVar()
-        self.minetstime = OptionMenu(self.dropdown, self.minets, '01','02','03','04','05','06','07','08'
-                            ,'09','10','11','12','13','14','15','16','17','18',
-                            '19','20','21','22','23','24','25','26','27','28',
-                            '29','30','31','32','33','34','35','36','37','38',
-                            '39','40','41','42','43','44','45','46','47','48',
-                            '49','50','51','52','53','54','55','56','57','58',
-                            '59', '00')
-        self.minetstime.pack(side=LEFT)
-        
-        self.pmam = StringVar()
-        self.ampm = OptionMenu(self.dropdown ,self.pmam, 'am', 'pm',)
-        self.ampm.pack(side=LEFT)
+		self.endTimeData = StringVar() #var holding the time that event ends
+		self.endTime = Label(self.timedata, textvariable = self.endTimeData, font = self.bodyFont)
+		self.endTime.pack(side = LEFT, padx = 10)
 
-        self.buttons = Frame(self.config)
-        self.buttons.pack(side=BOTTOM)
-        
 
-        self.submit = Button(self.buttons, text = "submit", width = 6, command = alarm.createGUI)
-        self.submit.pack(side=LEFT, padx = 2)
+		self.localdata = Frame(master)
+		self.localdata.pack(fill = X, padx = 5, pady = 10)
 
-        self.done = Button(self.buttons, text = "cancel" , width = 6, command = self.config.destroy)
-        self.done.pack(side = LEFT, padx = 2)
+		self.localLabel = Label(self.localdata, text = "Location:", font = self.subtitle)
+		self.localLabel.pack(side = LEFT)
 
-        
+		self.location = StringVar() #holds the location of the event (if any)
+		self.locationData = Label(self.localdata, textvariable = self.location)
+		self.locationData.pack(side = LEFT, padx = 5)
 
-####GUI#####
+		self.buttonboxinfo = Frame(master)
+		self.buttonboxinfo.pack(side=BOTTOM, fill = X)
 
-root = Tk()
-root.title("clock")
-root.geometry("300x400")
-root.resizable(FALSE,FALSE)
+		self.editButton = Button(self.buttonboxinfo, text = "Edit", command = self.EditButtonPress)
+		self.editButton.pack(side = RIGHT)
 
-alarm = alarmclock()
-timenow = timenow()
+	def entryForm(self, kind):
 
-thread1 = Thread(target = clockupdate)
-thread1.start()
+		self.title = StringVar()
+		self.locationName = StringVar()
+		self.timeInHours = StringVar()
+		self.rankOfEvent = StringVar()
+		self.timeInMinets = StringVar()
 
-top = Frame(root)
-top.pack(side=TOP, fill=X)
+		self.kind = kind
 
-clock = StringVar()
+		if (kind == "new"):
+			self.entryKind = "new event"
+		else:
+			self.entryKind = "edit event"
 
-timenowlabel = Label(top, textvariable=clock, font=("verdana", 20))
-timenowlabel.pack()
+			self.indexOfEditedEvent = self.listEvent[0]
+			self.title.set(self.listEvent[1])
+			self.locationName.set(self.listEvent[2])
 
-body = Frame(root)
-body.pack(fill=X)
+			self.amountOfTimeTaken = self.listEvent[5] - self.listEvent[4]
+			self.amountOfTimeTaken = str(self.amountOfTimeTaken).split(".")
 
-bottom = Frame(root)
-bottom.pack(fill=X, side=BOTTOM)
+			self.timeInHours.set(self.amountOfTimeTaken[0])
+			self.timeInMinets.set(self.amountOfTimeTaken[1])
+			self.rankOfEvent.set(int(self.listEvent[6]))
 
-add = Button(bottom, text="+", width=1, command=alarm.start)
-add.pack(side = LEFT)
+		self.eventform = Toplevel()
+		self.eventform.title(self.entryKind)
+		self.eventform.geometry("270x165")
 
-root.mainloop()
+		self.form = Frame(self.eventform)
+		self.form.pack(fill=X, padx = 5, pady = 5)
+
+		self.labelForTitle = Label(self.form, text = "Title: ")
+		self.labelForTitle.grid(column = 0, row = 0, pady = 5, sticky = W)
+
+		self.EntryForTitle = Entry(self.form, textvariable = self.title)
+		self.EntryForTitle.grid(column = 1, row = 0)
+
+		self.labelForLocation = Label(self.form, text = "Location: ")
+		self.labelForLocation.grid(column = 0, row = 1, pady = 5, sticky = W)
+
+		self.EntryForLocation = Entry(self.form, textvariable = self.locationName)
+		self.EntryForLocation.grid(column = 1, row = 1)
+
+		self.labelForTime = Label(self.form, text = "time taken: ")
+		self.labelForTime.grid(column = 0, row = 2, pady = 5, sticky = W)
+
+		self.timeFrame = Frame(self.form)
+		self.timeFrame .grid(column = 1, row = 2, sticky = W)
+
+		
+		self.timeHours = Entry(self.timeFrame, width = 2, textvariable = self.timeInHours)
+		self.timeHours.grid(column = 0, row = 0)
+
+		self.seporator = Label(self.timeFrame, text = " : ")
+		self.seporator.grid(column = 1, row = 0)
+
+		
+		self.timeMinets = Entry(self.timeFrame, width = 2, textvariable = self.timeInMinets)
+		self.timeMinets.grid(column = 2, row = 0)
+
+		self.labelForRank = Label(self.form, text = "rank: ")
+		self.labelForRank.grid(column = 0, row = 3, pady = 5, sticky = W)
+
+		self.optionRank = OptionMenu(self.form, self.rankOfEvent , "1", "2", "3", "4")
+		self.optionRank.grid(column = 1, row = 3, sticky = W)
+
+		self.submitButton = Button(self.form, text = "submit", command = self.SubmitHandler)
+		self.submitButton.grid(column = 1, row = 4, sticky = E)
+
+	def getBiggestIndex(self):
+
+		self.largestIndexList = SQLdata.getDataFromSQLITE()
+		self.ListOfIndexs = []
+
+		for i in self.largestIndexList:
+			self.ListOfIndexs = self.ListOfIndexs + [int(i[0])]
+
+		self.ListOfIndexs.sort()
+		self.ListOfIndexs.reverse()
+
+		return self.ListOfIndexs[0]
+
+	##############handlers##############
+
+	def listhandler(self, event):
+
+		#global self.index
+
+		self.lisboxliss = event.widget #find the index of that list box
+		self.index = int(self.lisboxliss.curselection()[0])
+		#print self.index
+
+		self.listEvent = SQLdata.getDataFromSQLITE()[self.index]
+
+		self.EventName.set(self.listEvent[1])#gets the event name form the data base
+		self.dateOfEvent.set(self.listEvent[3])#gets the dat
+		self.startTimeData.set(timeing.convertToTime(self.listEvent[4])) #gets the start time and runs it though the time code
+		self.endTimeData.set(timeing.convertToTime(self.listEvent[5])) #gets the end time and same
+		self.location.set(self.listEvent[2])#gets the location of the event (you guessed it) from the data base
+
+
+	def distoryButtonPress(self):#the selected event and delelets it
+
+		SQLdata.distoryFromData(self.listEvent[0])
+
+	def AddButtonPress(self):
+
+		self.entryForm("new")
+
+	def EditButtonPress(self):
+
+		self.entryForm("edit")
+
+	def SubmitHandler(self):
+
+		self.titleOfThisEvent = self.title.get()
+		self.LocationOfThisEvent = self.locationName.get()
+		self.TimeHoursOfThisEvent = self.timeInHours.get()
+		self.TimeMinetsOfThisEvent = self.timeInMinets.get()
+		self.rankOfThisEvent = int(self.rankOfEvent.get()) 
+
+		try:#if the number can not be converted in to an int it will throw an error and return
+			self.TimeHoursOfThisEvent = int(self.TimeHoursOfThisEvent)
+			self.TimeMinetsOfThisEvent = int(self.TimeMinetsOfThisEvent)
+		except:
+			tkMessageBox.showinfo("Error", "Time Value Not a Number!")
+			return
+		if self.titleOfThisEvent == "" or self.LocationOfThisEvent == "":#checks to see if the Entrys are empty
+			tkMessageBox.showinfo("Error", "Text Field Empty!")
+			return
+		if self.TimeMinetsOfThisEvent >= 60:
+			tkMessageBox.showinfo("Error", "only up to 59 minets!")
+			return
+
+		self.endTimeOfThisEvent = self.TimeHoursOfThisEvent + (self.TimeMinetsOfThisEvent / 100.0)#finds the amount of time 
+		print self.endTimeOfThisEvent
+		self.listOfNewDataOfNewEvent = [self.titleOfThisEvent, self.LocationOfThisEvent, 0, self.endTimeOfThisEvent, self.rankOfThisEvent]
+		SQLdata.addFromData(self.listOfNewDataOfNewEvent)
+
+		if not(self.kind == "new"):
+
+			SQLdata.distoryFromData(self.indexOfEditedEvent)
+
+
+
+
+class DataReadRight:
+
+	def __init__(self):
+
+		self.openDatabase()
+		
+	def getDataFromSQLITE(self):
+
+		self.listofdata = []
+		for self.rowData in self.EventData.execute("SELECT * FROM events"):
+			self.indexedrange = len(self.rowData)
+			self.smallerlist = []
+
+			for self.indexofDB in range(self.indexedrange):
+				self.smallerlist = self.smallerlist + [self.rowData[self.indexofDB]]
+	
+			self.listofdata = self.listofdata + [self.smallerlist]
+
+		return timeing.rankData(self.listofdata, 21)
+
+	def openDatabase(self):
+
+		self.EventData = sqlite3.connect('events.db')#connects to the db file giveing me the ablity to save and request data
+		self.selecter = self.EventData.cursor()#alows me to qeary the data in the .db file
+
+	def distoryFromData(self, index):
+
+		self.selecter.execute("DELETE FROM events WHERE indexEvent=" + str(index) + ";")
+		print index
+		self.EventData.commit()
+		self.EventData.close()
+		self.openDatabase()
+
+		Gui.data.delete(0, END)
+		for self.dataoflist in self.getDataFromSQLITE():
+
+			Gui.data.insert(END, " " + self.dataoflist[1])
+
+	def addFromData(self, listOfData):
+
+		self.newIndex = Gui.getBiggestIndex() + 1
+		self.selecter.execute("INSERT INTO events VALUES ( '%s','%s','%s','%s','%s','%s','%s');" % ( self.newIndex, listOfData[0],
+			listOfData[1], "9-9-13", listOfData[2], listOfData[3], listOfData[4]))
+
+		self.EventData.commit()
+		self.EventData.close()
+		self.openDatabase()
+
+		Gui.data.delete(0, END)
+		for self.dataoflist in self.getDataFromSQLITE():
+
+			Gui.data.insert(END, " " + self.dataoflist[1])
+		
+class timeing:
+
+	def convertToTime(self, oldtime): #converts 24 hour time to 12 hour time with AM or PM
+
+		if ((oldtime - int(oldtime)) != 0):
+			self.minets = int((oldtime - int(oldtime)) *100)
+			if (self.minets < 0.10):
+				self.minets = "0" + str(self.minets)
+			else:
+				self.minets = str(self.minets)
+		elif ((oldtime - int(oldtime)) == 0):
+			self.minets = "00"
+
+		self.hours = str(int(oldtime))
+
+		if (int(self.hours) < 12 and int(self.hours) != (12 or 24)):
+			self.hours = str(int(oldtime))
+			self.fulltime = self.hours + ":" + self.minets + 'am'
+		elif (int(self.hours) > 12 and int(self.hours) != (12 or 24)):
+			self.hours = str(int(self.hours) - 12)
+			self.fulltime = self.hours + ":" + self.minets + 'pm'
+		elif (int(self.hours) == 12):
+			self.fulltime = self.hours + ":" + self.minets + "pm"
+		elif (int(self.hours) == 24):
+			self.fulltime = str(int(self.hours) - 12) + ":" + self.minets + 'am'
+
+		return self.fulltime
+
+	def rankData(self, listOfEvents, timeAlocated):
+
+
+		self.rankedlist = sorted(listOfEvents, key = lambda event: event[6])#sorts the events by their 'rank'
+		self.rankedlist.reverse()#cnages the list form smallest to largest to largest to smallest 'rank'
+
+		self.amountOfTime = []#list the corestponds to the list of events but holds the time that is alocated to each event
+
+		for i in range(len(self.rankedlist)): #finds the time that is alocated to each event
+			self.amountOfTime = self.amountOfTime + [self.rankedlist[i][5] - self.rankedlist[i][4]]
+
+		self.startTimeOfEvent = 10
+		self.DayTimeStorage = timeAlocated
+		self.counter = 0
+		self.daysInFuture = 0
+		self.timeCounter = 0
+		
+		for self.counter in range(len(self.rankedlist)):
+			self.fulltime2 = 10
+			
+			for i in range(self.counter+1):
+				self.fulltime2 = (self.fulltime2 - self.timeCounter) + self.amountOfTime[i]
+
+			if not(self.fulltime2 <= self.DayTimeStorage):
+				self.startTimeOfEvent = 10
+				self.daysInFuture = self.daysInFuture + 1
+				self.timeCounter = self.fulltime2
+				self.fulltime2 = 0
+
+			#if self.fulltime <= self.DayTimeStorage:
+			self.rankedlist[self.counter][4] = self.startTimeOfEvent
+			self.rankedlist[self.counter][5] = self.startTimeOfEvent + self.amountOfTime[self.counter]
+			self.startTimeOfEvent = self.rankedlist[self.counter][5]
+			self.rankedlist[self.counter][3] = self.dateInDays(self.daysInFuture)
+			self.counter = self.counter + 1
+
+		
+		return self.rankedlist
+
+	def dateInDays(self, days):
+
+		#self.rawymd = str(time.strftime("%Y%m%d"))
+		#self.dateList = [self.rawymd[0:3], self.rawymd[4:6], self.rawymd[7:]]
+
+		return str(datetime.date.today() + datetime.timedelta(days=days))#gives me the date for the amount of days forward "days"
+
+
+
+
+		
+root = Tk()#Tk (GUI library) Object is created 
+root.title("clone planer") # title is made for the Tk Object
+root.geometry("550x455") #the size is created
+
+#other objects are created
+
+timeing = timeing()
+SQLdata = DataReadRight()
+Gui = mainGui(root)
+
+root.mainloop()#run the GUI in a loop
